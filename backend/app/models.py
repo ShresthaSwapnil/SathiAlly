@@ -70,3 +70,17 @@ class LearnResponse(BaseModel):
     title: str
     content: List[str] 
     example: str
+
+class QuizQuestion(BaseModel):
+    """ Defines the structure for a single multiple-choice question. """
+    question_text: str
+    options: List[str]  # A list of 4 possible answers
+    correct_answer_index: int # The index (0-3) of the correct answer in the options list
+
+class QuizResponse(BaseModel):
+    """ Defines the structure for the entire quiz. """
+    questions: List[QuizQuestion]
+
+class QuizRequest(BaseModel):
+    """ Defines the incoming request for a quiz. """
+    topic: str

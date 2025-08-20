@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 from fastapi import APIRouter, HTTPException
-from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse
+from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -81,6 +81,40 @@ You MUST respond ONLY with a valid JSON object that follows this exact structure
     "<Paragraph 3: A concluding thought or a piece of actionable advice.>"
   ],
   "example": "<A short, concrete example of the topic in a real-world online scenario.>"
+}
+"""
+
+# --- NEW: PROMPT ENGINEERING for Quiz Generation ---
+SYSTEM_PROMPT_QUIZ = """
+You are a master quiz creator for "Netra," an app that teaches Media and Information Literacy (MIL) to a young audience.
+Your task is to generate a short, 3-question multiple-choice quiz based on a specific MIL topic.
+The questions must be clear, relevant to the topic, and test the user's understanding.
+Provide 4 plausible options for each question, with one clear correct answer.
+
+You MUST respond ONLY with a valid JSON object that follows this exact structure:
+{
+  "questions": [
+    {
+      "question_text": "<The first question>",
+      "options": [
+        "<Option A>",
+        "<Option B>",
+        "<Option C>",
+        "<Option D>"
+      ],
+      "correct_answer_index": <The index of the correct answer (0, 1, 2, or 3)>
+    },
+    {
+      "question_text": "<The second question>",
+      "options": ["<A>", "<B>", "<C>", "<D>"],
+      "correct_answer_index": <0, 1, 2, or 3>
+    },
+    {
+      "question_text": "<The third question>",
+      "options": ["<A>", "<B>", "<C>", "<D>"],
+      "correct_answer_index": <0, 1, 2, or 3>
+    }
+  ]
 }
 """
 
@@ -189,4 +223,19 @@ async def generate_lesson(request: LearnRequest):
         return LearnResponse(**ai_output)
     except Exception as e:
         print(f"An unexpected error occurred during lesson generation: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error during lesson generation.")
+        raise HTTPException(status_code=500, detail="Internal server error during lesson generation.")  
+    
+@router.post("/generate_quiz", response_model=QuizResponse)
+async def generate_quiz(request: QuizRequest):
+    """
+    Generates a 3-question quiz on a given MIL topic.
+    """
+    try:
+        full_prompt = f"{SYSTEM_PROMPT_QUIZ}\n\nPlease generate a quiz on the topic of: '{request.topic}'."
+        response = await model.generate_content_async(full_prompt)
+        cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        ai_output = json.loads(cleaned_response_text)
+        return QuizResponse(**ai_output)
+    except Exception as e:
+        print(f"An unexpected error occurred during quiz generation: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during quiz generation.")

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/models/scenario.dart';
 import 'package:frontend/models/score_response.dart';
+import 'package:frontend/models/lesson.dart';
 
 class ApiService {
   // Get the base URL from the environment variables
@@ -64,6 +65,25 @@ class ApiService {
     } else {
       print('Failed to get score: ${response.body}');
       throw Exception('Failed to get score from AI coach');
+    }
+  }
+
+  Future<Lesson> generateLesson({required String topic}) async {
+    if (_baseUrl == null) throw Exception("API_BASE_URL not found");
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/generate_lesson'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{'topic': topic}),
+    );
+
+    if (response.statusCode == 200) {
+      return Lesson.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      print('Failed to get lesson: ${response.body}');
+      throw Exception('Failed to get lesson from AI');
     }
   }
 }
