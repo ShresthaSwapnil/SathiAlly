@@ -84,3 +84,11 @@ class QuizResponse(BaseModel):
 class QuizRequest(BaseModel):
     """ Defines the incoming request for a quiz. """
     topic: str
+
+class GameItemResponse(BaseModel):
+    """
+    Defines the structure for a single item in the deepfake game.
+    """
+    content: str  # The text snippet for the user to evaluate
+    is_real: bool # The correct answer (True if real, False if AI-generated)
+    explanation: str # A short sentence explaining why it's real or fake

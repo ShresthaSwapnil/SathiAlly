@@ -14,6 +14,7 @@ class QuizResultsScreen extends StatelessWidget {
   void _finishAndClaimXP(BuildContext context) async {
     // Award 5 XP per correct answer
     int xpGained = score * 5;
+    // We need to use the actual updateProgress method from the service now
     await GamificationService().updateProgress(totalScore: xpGained);
 
     if (context.mounted) {
@@ -23,8 +24,8 @@ class QuizResultsScreen extends StatelessWidget {
           backgroundColor: Colors.green,
         ),
       );
-      // Pop twice: once to get off the results screen, once to get off the (now replaced) quiz screen.
-      Navigator.of(context).pop();
+
+      // The Fix: We only need to pop the Results screen to get back to the main shell.
       Navigator.of(context).pop();
     }
   }

@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 from fastapi import APIRouter, HTTPException
-from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse
+from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -115,6 +115,23 @@ You MUST respond ONLY with a valid JSON object that follows this exact structure
       "correct_answer_index": <0, 1, 2, or 3>
     }
   ]
+}
+"""
+
+# --- NEW: PROMPT ENGINEERING for Game Item Generation ---
+SYSTEM_PROMPT_GAME_ITEM = """
+You are a content designer for a game within the "Netra" app. The game is called "Real or Fake?".
+Your task is to generate a single game item. You must FIRST randomly decide to either:
+A) Write a short, plausible-sounding but completely FAKE news headline or a short, fake paragraph on a common topic (e.g., science, tech, history).
+B) Write a short, FACTUAL news headline or a short, factual paragraph summarizing a well-known, real event.
+
+After generating the content, you must provide a boolean `is_real` and a short, helpful `explanation` for why the content is real or fake. The explanation is the most important part for teaching the user.
+
+You MUST respond ONLY with a valid JSON object that follows this exact structure:
+{
+  "content": "<The text snippet you generated>",
+  "is_real": <true_or_false>,
+  "explanation": "<A concise explanation. e.g., 'This is fake because this event never happened.' or 'This is real; it refers to the moon landing in 1969.'>"
 }
 """
 
@@ -239,3 +256,18 @@ async def generate_quiz(request: QuizRequest):
     except Exception as e:
         print(f"An unexpected error occurred during quiz generation: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during quiz generation.")
+    
+@router.get("/generate_game_item", response_model=GameItemResponse)
+async def generate_game_item():
+    """
+    Generates a single "Real or Fake?" game item (text-based).
+    """
+    try:
+        # We use the same prompt every time and let the AI handle the randomization.
+        response = await model.generate_content_async(SYSTEM_PROMPT_GAME_ITEM)
+        cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        ai_output = json.loads(cleaned_response_text)
+        return GameItemResponse(**ai_output)
+    except Exception as e:
+        print(f"An unexpected error occurred during game item generation: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during game item generation.")
