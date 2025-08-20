@@ -7,6 +7,7 @@ import 'package:frontend/models/history_entry.dart';
 import 'package:frontend/features/dojo/dojo_screen.dart';
 import 'package:frontend/models/player_progress.dart';
 import 'package:frontend/features/shell/main_screen.dart';
+import 'package:frontend/services/profile_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ Future<void> main() async {
 
   await Hive.openBox<HistoryEntry>('history');
   await Hive.openBox<PlayerProgress>('player_progress');
+  await Hive.openBox('profile');
+
+  await ProfileService().initProfile();
 
   runApp(const SathiAllyApp());
 }
@@ -37,8 +41,7 @@ class SathiAllyApp extends StatelessWidget {
         secondary: Color(0xFF03DAC6), // A teal for accents
         surface: Colors.white, // Card backgrounds
         onPrimary: Colors.white, // Text on primary color
-        onSecondary: Colors.black, // Text on secondary color
-        background: Color(0xFFF5F5F5),
+        onSecondary: Colors.black,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.white,
@@ -67,7 +70,6 @@ class SathiAllyApp extends StatelessWidget {
         surface: Color(0xFF1E1E1E),
         onPrimary: Colors.black,
         onSecondary: Colors.black,
-        background: Color(0xFF121212),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF1E1E1E),

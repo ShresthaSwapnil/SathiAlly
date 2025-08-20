@@ -127,7 +127,7 @@ class _LearnScreenState extends State<LearnScreen> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

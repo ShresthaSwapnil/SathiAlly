@@ -1,10 +1,10 @@
-// lib/features/shell/main_screen.dart
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:frontend/features/dojo/dojo_screen.dart';
 import 'package:frontend/features/learn/learn_screen.dart';
 import 'package:frontend/features/deepfake/deepfake_game_screen.dart';
 import 'package:frontend/features/leaderboard/leaderboard_screen.dart';
+import 'package:frontend/features/profile/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,7 +14,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 1; // Default to the Dojo tab (index 1)
+  int _selectedIndex = 0;
 
   // List of the main screens for each tab. Use `final` instead of `const` for flexibility.
   // We add `const` before each widget since they have const constructors.
@@ -39,9 +39,12 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              /* TODO: Navigate to Profile screen */
+              // v-- UPDATE THIS --v
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
             },
-            // REMOVED 'const' because Iconsax icons may not be compile-time constants.
             icon: const Icon(Iconsax.user),
             iconSize: 28,
           ),
@@ -77,7 +80,6 @@ class _MainScreenState extends State<MainScreen> {
               context,
             ).colorScheme.primary.withOpacity(0.1),
             elevation: 0,
-            // REMOVED 'const' from the list because its children use dynamic values.
             destinations: <Widget>[
               NavigationDestination(
                 selectedIcon: Icon(

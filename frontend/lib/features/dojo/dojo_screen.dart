@@ -174,7 +174,6 @@ class _DojoScreenState extends State<DojoScreen> {
                       delay: const Duration(milliseconds: 500),
                       child: OutlinedButton(
                         onPressed: _showTopicSelection,
-                        child: const Text('Choose a Topic...'),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
                             color: Theme.of(context).colorScheme.primary,
@@ -190,6 +189,7 @@ class _DojoScreenState extends State<DojoScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        child: const Text('Choose a Topic...'),
                       ),
                     ),
                   ],

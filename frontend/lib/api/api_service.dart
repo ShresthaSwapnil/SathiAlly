@@ -119,4 +119,29 @@ class ApiService {
       throw Exception('Failed to generate game item');
     }
   }
+
+  Future<void> updateScore(String userId, String username, int xpGained) async {
+    if (_baseUrl == null) throw Exception("API_BASE_URL not found");
+    await http.post(
+      Uri.parse('$_baseUrl/update_score'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'user_id': userId,
+        'username': username,
+        'xp_gained': xpGained,
+      }),
+    );
+  }
+
+  Future<List<dynamic>> getLeaderboard() async {
+    if (_baseUrl == null) throw Exception("API_BASE_URL not found");
+    final response = await http.get(Uri.parse('$_baseUrl/leaderboard'));
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load leaderboard');
+    }
+  }
 }

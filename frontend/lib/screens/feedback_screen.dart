@@ -66,7 +66,7 @@ class FeedbackScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
-            ...feedback.scores.map((score) => _buildScoreTile(score)).toList(),
+            ...feedback.scores.map((score) => _buildScoreTile(score)),
           ],
         ),
       ),

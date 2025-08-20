@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class Score {
   final String criterion;
   final int score;

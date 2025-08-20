@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:frontend/models/player_progress.dart';
+import 'package:frontend/services/profile_service.dart';
+import 'package:frontend/api/api_service.dart';
 
 class GamificationService {
   final Box<PlayerProgress> _progressBox = Hive.box<PlayerProgress>(
@@ -54,6 +55,14 @@ class GamificationService {
       }
       progress.lastSessionDate = now;
     }
+
+    final profileService = ProfileService();
+    final apiService = ApiService();
+    await apiService.updateScore(
+      profileService.getUserId(),
+      profileService.getUsername(),
+      xpGained, // Use the xpGained calculated earlier
+    );
 
     // Save the updated progress. `put(0, ...)` overwrites the entry at index 0.
     await _progressBox.put(0, progress);
