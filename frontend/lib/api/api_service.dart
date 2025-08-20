@@ -5,6 +5,7 @@ import 'package:frontend/models/scenario.dart';
 import 'package:frontend/models/score_response.dart';
 import 'package:frontend/models/lesson.dart';
 import 'package:frontend/models/quiz.dart';
+import 'package:frontend/models/game_item.dart';
 
 class ApiService {
   // Get the base URL from the environment variables
@@ -104,6 +105,18 @@ class ApiService {
       return questionsJson.map((json) => QuizQuestion.fromJson(json)).toList();
     } else {
       throw Exception('Failed to generate quiz');
+    }
+  }
+
+  Future<GameItem> generateGameItem() async {
+    if (_baseUrl == null) throw Exception("API_BASE_URL not found");
+
+    final response = await http.get(Uri.parse('$_baseUrl/generate_game_item'));
+
+    if (response.statusCode == 200) {
+      return GameItem.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      throw Exception('Failed to generate game item');
     }
   }
 }

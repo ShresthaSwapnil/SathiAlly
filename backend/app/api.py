@@ -1,10 +1,12 @@
 import os
 import json
 import uuid
-from fastapi import APIRouter, HTTPException
-from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse
+from fastapi import APIRouter, HTTPException, Depends
+from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse, UpdateScoreRequest
 import google.generativeai as genai
 from dotenv import load_dotenv
+from .database import SessionLocal, Leaderboard
+from sqlalchemy.orm import Session
 
 # --- SETUP ---
 
@@ -271,3 +273,38 @@ async def generate_game_item():
     except Exception as e:
         print(f"An unexpected error occurred during game item generation: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during game item generation.")
+    
+
+# Dependency to get a DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post("/update_score")
+def update_score(request: UpdateScoreRequest, db: Session = Depends(get_db)):
+    """
+    Updates a user's total XP. Creates the user if they don't exist.
+    """
+    user = db.query(Leaderboard).filter(Leaderboard.user_id == request.user_id).first()
+    if user:
+        user.total_xp += request.xp_gained
+    else:
+        new_user = Leaderboard(
+            user_id=request.user_id,
+            username=request.username,
+            total_xp=request.xp_gained
+        )
+        db.add(new_user)
+    db.commit()
+    return {"status": "success"}
+
+@router.get("/leaderboard")
+def get_leaderboard(db: Session = Depends(get_db)):
+    """
+    Returns the top 50 users sorted by total_xp.
+    """
+    leaderboard = db.query(Leaderboard).order_by(Leaderboard.total_xp.desc()).limit(50).all()
+    return leaderboard

@@ -92,3 +92,8 @@ class GameItemResponse(BaseModel):
     content: str  # The text snippet for the user to evaluate
     is_real: bool # The correct answer (True if real, False if AI-generated)
     explanation: str # A short sentence explaining why it's real or fake
+
+class UpdateScoreRequest(BaseModel):
+    user_id: str
+    username: str
+    xp_gained: int
