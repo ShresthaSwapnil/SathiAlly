@@ -1,10 +1,26 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:frontend/screens/home_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:frontend/models/history_entry.dart';
+import 'package:frontend/features/dojo/dojo_screen.dart';
+import 'package:frontend/models/player_progress.dart';
+import 'package:frontend/features/shell/main_screen.dart';
 
 Future<void> main() async {
-  // Load the environment variables from the .env file
+  WidgetsFlutterBinding.ensureInitialized();
+
   await dotenv.load(fileName: ".env");
+
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(HistoryEntryAdapter());
+  Hive.registerAdapter(PlayerProgressAdapter());
+
+  await Hive.openBox<HistoryEntry>('history');
+  await Hive.openBox<PlayerProgress>('player_progress');
+
   runApp(const SathiAllyApp());
 }
 
@@ -13,16 +29,74 @@ class SathiAllyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Sathi Ally',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark, // Use a dark theme as a base
-        ),
-        useMaterial3: true,
+    // --- 1. Define a modern, LIGHT theme ---
+    final lightTheme = ThemeData.light().copyWith(
+      scaffoldBackgroundColor: const Color(0xFFF5F5F5), // Off-white background
+      colorScheme: const ColorScheme.light(
+        primary: Color(0xFF6200EE), // A vibrant purple for primary actions
+        secondary: Color(0xFF03DAC6), // A teal for accents
+        surface: Colors.white, // Card backgrounds
+        onPrimary: Colors.white, // Text on primary color
+        onSecondary: Colors.black, // Text on secondary color
+        background: Color(0xFFF5F5F5),
       ),
-      home: const HomeScreen(),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        foregroundColor: Colors.black, // Makes app bar text and icons black
+      ),
+      textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6200EE),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+      ),
+    );
+
+    // --- 2. Define a modern, DARK theme ---
+    final darkTheme = ThemeData.dark().copyWith(
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFFBB86FC), // A lighter purple for dark mode
+        secondary: Color(0xFF03DAC6),
+        surface: Color(0xFF1E1E1E),
+        onPrimary: Colors.black,
+        onSecondary: Colors.black,
+        background: Color(0xFF121212),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E),
+        elevation: 0,
+      ),
+      textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFBB86FC),
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+      ),
+    );
+
+    return MaterialApp(
+      title: 'Netra',
+      debugShowCheckedModeBanner: false,
+
+      // --- 3. Set the themes and theme mode ---
+      theme: lightTheme, // The default theme for the app.
+      darkTheme: darkTheme, // The theme to use when the device is in dark mode.
+      themeMode: ThemeMode
+          .system, // This is the magic part! It tells Flutter to follow the device's setting.
+
+      home: const MainScreen(),
     );
   }
 }

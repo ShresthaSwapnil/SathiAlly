@@ -1,15 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:frontend/models/history_entry.dart';
+import 'package:frontend/models/scenario.dart';
 import 'package:frontend/models/score_response.dart';
+import 'package:frontend/services/gamification_service.dart';
 
 class FeedbackScreen extends StatelessWidget {
+  final Scenario scenario;
   final String userReply;
   final ScoreResponse feedback;
 
   const FeedbackScreen({
     super.key,
+    required this.scenario,
     required this.userReply,
     required this.feedback,
   });
+
+  void _saveAndFinish(BuildContext context) async {
+    final historyBox = Hive.box<HistoryEntry>('history');
+    final totalScore = feedback.scores.fold<int>(
+      0,
+      (sum, item) => sum + item.score,
+    );
+
+    final newEntry = HistoryEntry(
+      scenarioContext: scenario.context,
+      hateSpeechComment: scenario.hateSpeechComment,
+      userReply: userReply,
+      suggestedRewrite: feedback.suggestedRewrite,
+      totalScore: totalScore,
+      timestamp: DateTime.now(),
+    );
+
+    historyBox.add(newEntry);
+
+    // Update the user's XP and Streak
+    await GamificationService().updateProgress(totalScore: totalScore);
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +73,8 @@ class FeedbackScreen extends StatelessWidget {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
-          onPressed: () {
-            // Navigate back to the very first screen (HomeScreen)
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          child: const Text('Finish Session'),
+          onPressed: () => _saveAndFinish(context),
+          child: const Text('Finish & Save Session'),
         ),
       ),
     );

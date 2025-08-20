@@ -38,6 +38,13 @@ dependencies:
   http: ^1.2.1 # For making API requests to our backend
   provider: ^6.1.2 # For simple and effective state management
   flutter_dotenv: ^5.1.0 # To manage environment variables like the API URL
+  google_fonts: ^6.2.1 # For beautiful, easy-to-use custom fonts
+  animate_do: ^3.3.4 # For simple, powerful animations
+  hive: ^2.2.3 # A fast, lightweight, and native database for local storage
+  hive_flutter: ^1.1.0 # Flutter helpers for Hive
+  path_provider: ^2.1.3 # To find the correct path to store the database
+  intl: ^0.19.0 # For date formatting in the history screen
+  iconsax: ^0.0.8
 
 dev_dependencies:
   flutter_test:
@@ -49,6 +56,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  hive_generator: ^2.0.1 # Code generator for Hive
+  build_runner: ^2.4.9 # Tool to run code generators
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

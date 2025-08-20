@@ -8,7 +8,10 @@ class ApiService {
   // Get the base URL from the environment variables
   final String? _baseUrl = dotenv.env['API_BASE_URL'];
 
-  Future<Scenario> generateScenario({bool isGentleMode = false}) async {
+  Future<Scenario> generateScenario({
+    String? topic,
+    bool isGentleMode = false,
+  }) async {
     if (_baseUrl == null) {
       throw Exception("API_BASE_URL not found in .env file");
     }
@@ -18,7 +21,11 @@ class ApiService {
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(<String, bool>{'gentle_mode': isGentleMode}),
+      body: jsonEncode(<String, dynamic>{
+        // <-- Change to dynamic map
+        'topic': topic, // Pass the topic
+        'gentle_mode': isGentleMode,
+      }),
     );
 
     if (response.statusCode == 200) {

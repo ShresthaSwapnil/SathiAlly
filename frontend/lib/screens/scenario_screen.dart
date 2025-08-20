@@ -40,6 +40,7 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => FeedbackScreen(
+              scenario: widget.scenario,
               userReply: _replyController.text,
               feedback: feedback,
             ),

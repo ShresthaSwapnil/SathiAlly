@@ -56,3 +56,17 @@ class TelemetryData(BaseModel):
     was_skipped: bool
     was_flagged_distressing: bool
     gentle_mode_active: bool
+
+class LearnRequest(BaseModel):
+    """
+    Defines the incoming request for a lesson.
+    """
+    topic: str
+
+class LearnResponse(BaseModel):
+    """
+    Defines the structured lesson content returned by the AI.
+    """
+    title: str
+    content: List[str] 
+    example: str

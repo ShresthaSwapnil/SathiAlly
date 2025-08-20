@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 from fastapi import APIRouter, HTTPException
-from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData
+from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -65,6 +65,23 @@ You MUST respond ONLY with a valid JSON object that follows this exact structure
 }
 
 Do not include any other text, explanations, or markdown formatting around the JSON object.
+"""
+
+# --- NEW: PROMPT ENGINEERING for Lesson Generation ---
+SYSTEM_PROMPT_LESSON = """
+You are an expert educator and content creator for "Netra," an app that teaches Media and Information Literacy (MIL) to a young, tech-savvy audience (ages 16-25).
+Your task is to generate a short, clear, and highly engaging lesson on a specific MIL topic. The tone should be friendly, encouraging, and easy to understand. Use simple analogies where possible.
+
+You MUST respond ONLY with a valid JSON object that follows this exact structure:
+{
+  "title": "<A catchy and clear title for the lesson>",
+  "content": [
+    "<Paragraph 1: A simple introduction explaining what the topic is and why it matters.>",
+    "<Paragraph 2: A core explanation with more detail or a key concept.>",
+    "<Paragraph 3: A concluding thought or a piece of actionable advice.>"
+  ],
+  "example": "<A short, concrete example of the topic in a real-world online scenario.>"
+}
 """
 
 # --- API ENDPOINT ---
@@ -156,3 +173,20 @@ async def receive_telemetry(data: TelemetryData):
     # We return a 202 "Accepted" status because the client doesn't need to wait for
     # any processing to happen after sending the data.
     return {"status": "accepted"}
+
+@router.post("/generate_lesson", response_model=LearnResponse)
+async def generate_lesson(request: LearnRequest):
+    """
+    Generates a personalized educational lesson on a given MIL topic.
+    """
+    try:
+        full_prompt = f"{SYSTEM_PROMPT_LESSON}\n\nPlease generate a lesson on the topic of: '{request.topic}'."
+
+        response = await model.generate_content_async(full_prompt)
+        cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        ai_output = json.loads(cleaned_response_text)
+        
+        return LearnResponse(**ai_output)
+    except Exception as e:
+        print(f"An unexpected error occurred during lesson generation: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during lesson generation.")
