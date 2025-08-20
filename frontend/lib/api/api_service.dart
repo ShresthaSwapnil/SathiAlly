@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/models/scenario.dart';
 import 'package:frontend/models/score_response.dart';
 import 'package:frontend/models/lesson.dart';
+import 'package:frontend/models/quiz.dart';
 
 class ApiService {
   // Get the base URL from the environment variables
@@ -84,6 +85,25 @@ class ApiService {
     } else {
       print('Failed to get lesson: ${response.body}');
       throw Exception('Failed to get lesson from AI');
+    }
+  }
+
+  Future<List<QuizQuestion>> generateQuiz({required String topic}) async {
+    if (_baseUrl == null) throw Exception("API_BASE_URL not found");
+    final response = await http.post(
+      Uri.parse('$_baseUrl/generate_quiz'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{'topic': topic}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final List<dynamic> questionsJson = data['questions'];
+      return questionsJson.map((json) => QuizQuestion.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to generate quiz');
     }
   }
 }
