@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/features/shell/main_screen.dart';
+import 'dart:async';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -21,18 +22,31 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<void> _initializeApp() async {
     // This process now runs a series of tasks and provides feedback.
+    final completer = Completer<void>();
 
     // Task 1: Start waking up the server and update the message.
     setState(() => _loadingMessage = "Waking up the AI coach...");
-    final serverPingFuture = ApiService().pingServer();
+    // We don't await the ping here directly, but we handle its completion.
+    ApiService()
+        .pingServer()
+        .then((_) {
+          // This will run if the server responds successfully before the minimum wait time.
+          setState(() => _loadingMessage = "Connecting...");
+        })
+        .catchError((_) {
+          // This will run if the server ping times out or fails. It's okay.
+          setState(() => _loadingMessage = "Coach is waking up, one moment...");
+        });
 
     // Task 2: Ensure the splash screen is visible for a minimum duration for a premium feel.
-    final minimumWaitFuture = Future.delayed(
-      const Duration(milliseconds: 2000),
-    );
+    Future.delayed(const Duration(milliseconds: 3000), () {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    });
 
-    // Wait for both tasks to complete.
-    await Future.wait([serverPingFuture, minimumWaitFuture]);
+    // Wait for the minimum delay to finish.
+    await completer.future;
 
     // Task 3: Navigate to the main app.
     if (mounted) {

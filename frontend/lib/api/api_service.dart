@@ -146,19 +146,19 @@ class ApiService {
   }
 
   Future<void> pingServer() async {
-    // This is a "fire and forget" request. We don't care about the response,
-    // only that we sent the request to wake up the server.
+    // Pings the new /ping endpoint with a much longer timeout.
     try {
       if (_baseUrl == null) return;
-      // We use a short timeout to prevent this from blocking the app
-      // if the server is completely down.
+      // A generous 25-second timeout, which should be enough for most cold starts.
       await http
-          .get(Uri.parse(_baseUrl!).replace(path: '/'))
-          .timeout(const Duration(seconds: 5));
-      print("Server pinged successfully.");
+          .get(Uri.parse('$_baseUrl/ping'))
+          .timeout(const Duration(seconds: 25));
+      print("Server pinged successfully and is warm.");
     } catch (e) {
-      // It's okay if this fails. The user can still use the app.
-      print("Server ping failed (this is okay on startup): $e");
+      // It's still okay if this fails. The app will continue.
+      print("Server ping failed or timed out: $e");
+      // We rethrow the error so the UI can know it failed.
+      throw Exception('Server ping failed');
     }
   }
 }

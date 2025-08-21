@@ -308,3 +308,8 @@ def get_leaderboard(db: Session = Depends(get_db)):
     """
     leaderboard = db.query(Leaderboard).order_by(Leaderboard.total_xp.desc()).limit(50).all()
     return leaderboard
+
+@router.get("/ping")
+def ping():
+    """ A simple endpoint to verify the API is running and to wake it up. """
+    return {"status": "alive"}
