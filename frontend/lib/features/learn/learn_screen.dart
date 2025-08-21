@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/lesson.dart';
-import 'package:frontend/models/quiz.dart';
 import 'package:frontend/features/quiz/quiz_screen.dart';
 
 class LearnScreen extends StatefulWidget {
@@ -103,6 +103,15 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   Widget _buildTopicSelectionView() {
+    final topicIcons = [
+      Iconsax.message_question,
+      Iconsax.eye,
+      Iconsax.cpu_setting,
+      Iconsax.shield_tick,
+      Iconsax.bubble,
+      Iconsax.document_text,
+    ];
+
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
@@ -120,14 +129,28 @@ class _LearnScreenState extends State<LearnScreen> {
             delay: Duration(milliseconds: 100 * idx),
             child: Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: ListTile(
-                title: Text(topic),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                leading: Icon(
+                  topicIcons[idx % topicIcons.length], // Cycle through icons
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  topic,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                trailing: const Icon(Iconsax.arrow_right_3, size: 20),
                 onTap: () => _fetchLesson(topic),
               ),
             ),
           );
-        }),
+        }).toList(),
       ],
     );
   }

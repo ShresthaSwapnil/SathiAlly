@@ -31,13 +31,13 @@ Sathi Ally is a mobile application developed for the UNESCO Youth Hackathon 2025
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/sathi-ally.git
+git clone https://github.com/ShresthaSwapnil/SathiAlly.git
 ```
 
 2. Install Flutter dependencies
 
 ```bash
-cd sathi-ally
+cd frontend
 flutter pub get
 ```
 
@@ -52,6 +52,7 @@ pip install -r requirements.txt
 
 ```
 GEMINI_API_KEY=your_api_key
+DATABASE_URL=your_neon_postgresql_api_key
 ```
 
 5. Run the application
@@ -82,6 +83,7 @@ This project is licensed under the MIT License
 - Aayush Bhattarai
 - Aditya Malla Thakuri
 - Diya Shakya
+- Swapnil Shrestha
 
 ## Acknowledgments
 

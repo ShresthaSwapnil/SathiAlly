@@ -120,7 +120,7 @@ You MUST respond ONLY with a valid JSON object that follows this exact structure
 }
 """
 
-# --- NEW: PROMPT ENGINEERING for Game Item Generation ---
+# --- PROMPT ENGINEERING for Game Item Generation ---
 SYSTEM_PROMPT_GAME_ITEM = """
 You are a content designer for a game within the "Netra" app. The game is called "Real or Fake?".
 Your task is to generate a single game item. You must FIRST randomly decide to either:

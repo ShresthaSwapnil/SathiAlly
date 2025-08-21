@@ -47,6 +47,7 @@ dependencies:
   iconsax: ^0.0.8
   uuid: ^4.4.0
   random_name_generator: ^1.5.0
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +62,26 @@ dev_dependencies:
   hive_generator: ^2.0.1 # Code generator for Hive
   build_runner: ^2.4.9 # Tool to run code generators
 
+  flutter_native_splash: ^2.4.0 # For creating a native splash screen
+
+flutter_native_splash:
+  # The background color for your splash screen.
+  # Use the color from your dark theme for a seamless transition.
+  color: "#319e9e"
+  color_dark: "#319e9e"
+
+  # The logo to display in the center.
+  image: assets/logo.png
+  image_dark: assets/logo.png
+
+  # Android 12 introduced a new splash screen design.
+  # This section provides a separate icon for that.
+  android_12:
+    image: assets/logo.png
+    icon_background_color: "#319e9e"
+    image_dark: assets/logo.png
+    icon_background_color_dark: "#319e9e"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -74,6 +95,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/player_progress.dart';
 import 'package:frontend/models/scenario.dart';
-import 'package:frontend/screens/history_screen.dart';
 import 'package:frontend/screens/scenario_screen.dart';
 import 'package:frontend/services/gamification_service.dart';
 
@@ -114,120 +114,155 @@ class _DojoScreenState extends State<DojoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Sathi Ally'),
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.history),
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (context) => const HistoryScreen()),
-      //         );
-      //       },
-      //     ),
-      //   ],
-      // ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: _isLoading
-              ? const CircularProgressIndicator()
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildStatsBar(), // <-- Our new stats bar
-                    const Spacer(),
-                    FadeInDown(child: const Icon(Icons.security, size: 80)),
-                    const SizedBox(height: 20),
-                    FadeInUp(
-                      child: Text(
-                        'Welcome to your Dialogue Dojo',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                        textAlign: TextAlign.center,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  // New, improved stats header
+                  FadeIn(
+                    duration: const Duration(milliseconds: 500),
+                    child: _StatsHeader(playerProgress: _playerProgress),
+                  ),
+                  const Spacer(),
+                  // Main content with better hierarchy
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 500),
+                    child: Text(
+                      'Ready for a Challenge?',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 200),
+                    child: const Text(
+                      'Practice makes perfect. Jump into a scenario to sharpen your skills.',
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 400),
+                    child: ElevatedButton.icon(
+                      onPressed: () => _startNewSession(),
+                      icon: const Icon(Iconsax.play),
+                      label: const Text('Start Random Session'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 56),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    FadeInUp(
-                      duration: const Duration(milliseconds: 500),
-                      delay: const Duration(milliseconds: 200),
-                      child: const Text(
-                        'Practice responding to tough online conversations in a safe space.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    FadeInUp(
-                      duration: const Duration(milliseconds: 500),
-                      delay: const Duration(milliseconds: 400),
-                      child: ElevatedButton.icon(
-                        // CORRECTED CALL: Calling with no arguments is valid for an optional parameter.
-                        onPressed: () =>
-                            _startNewSession(), // Start with a random topic
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('Start Random Session'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    FadeInUp(
-                      duration: const Duration(milliseconds: 500),
-                      delay: const Duration(milliseconds: 500),
-                      child: OutlinedButton(
-                        onPressed: _showTopicSelection,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                  ),
+                  const SizedBox(height: 16),
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 500),
+                    child: OutlinedButton(
+                      onPressed: _showTopicSelection,
+                      child: const Text('Choose a Specific Topic'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 56),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-                        child: const Text('Choose a Topic...'),
+                        foregroundColor: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
+    );
+  }
+
+  // Widget _buildStatsBar() {
+  //   return FadeIn(
+  //     duration: const Duration(milliseconds: 500),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //       children: [
+  //         _buildStatItem(
+  //           Icons.star,
+  //           '${_playerProgress.totalXp} XP',
+  //           Colors.amber,
+  //         ),
+  //         _buildStatItem(
+  //           Icons.local_fire_department,
+  //           '${_playerProgress.streakCount} Day Streak',
+  //           Colors.orange,
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  // Widget _buildStatItem(IconData icon, String label, Color color) {
+  //   return Row(
+  //     children: [
+  //       Icon(icon, color: color, size: 28),
+  //       const SizedBox(width: 8),
+  //       Text(
+  //         label,
+  //         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //       ),
+  //     ],
+  //   );
+  // }
+}
+
+class _StatsHeader extends StatelessWidget {
+  final PlayerProgress playerProgress;
+  const _StatsHeader({required this.playerProgress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStatItem(
+              context,
+              Iconsax.star_1,
+              '${playerProgress.totalXp} XP',
+              Colors.amber,
+            ),
+            const SizedBox(height: 30, child: VerticalDivider()),
+            _buildStatItem(
+              context,
+              Icons.local_fire_department,
+              '${playerProgress.streakCount} Day Streak',
+              Colors.orange,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStatsBar() {
-    return FadeIn(
-      duration: const Duration(milliseconds: 500),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatItem(
-            Icons.star,
-            '${_playerProgress.totalXp} XP',
-            Colors.amber,
-          ),
-          _buildStatItem(
-            Icons.local_fire_department,
-            '${_playerProgress.streakCount} Day Streak',
-            Colors.orange,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(IconData icon, String label, Color color) {
+  Widget _buildStatItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    Color color,
+  ) {
     return Row(
       children: [
         Icon(icon, color: color, size: 28),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Text(
           label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );

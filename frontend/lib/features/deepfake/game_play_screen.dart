@@ -5,7 +5,7 @@ import 'package:frontend/models/game_item.dart';
 import 'package:frontend/features/deepfake/game_results_screen.dart';
 
 const int TOTAL_ROUNDS = 5;
-const int ROUND_DURATION = 15; // 10 seconds per round
+const int ROUND_DURATION = 15;
 
 class GamePlayScreen extends StatefulWidget {
   const GamePlayScreen({super.key});

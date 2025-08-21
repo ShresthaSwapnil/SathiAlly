@@ -144,4 +144,21 @@ class ApiService {
       throw Exception('Failed to load leaderboard');
     }
   }
+
+  Future<void> pingServer() async {
+    // This is a "fire and forget" request. We don't care about the response,
+    // only that we sent the request to wake up the server.
+    try {
+      if (_baseUrl == null) return;
+      // We use a short timeout to prevent this from blocking the app
+      // if the server is completely down.
+      await http
+          .get(Uri.parse(_baseUrl!).replace(path: '/'))
+          .timeout(const Duration(seconds: 5));
+      print("Server pinged successfully.");
+    } catch (e) {
+      // It's okay if this fails. The user can still use the app.
+      print("Server ping failed (this is okay on startup): $e");
+    }
+  }
 }

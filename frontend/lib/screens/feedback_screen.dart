@@ -18,12 +18,12 @@ class FeedbackScreen extends StatelessWidget {
   });
 
   void _saveAndFinish(BuildContext context) async {
+    // ... (This logic is unchanged)
     final historyBox = Hive.box<HistoryEntry>('history');
     final totalScore = feedback.scores.fold<int>(
       0,
       (sum, item) => sum + item.score,
     );
-
     final newEntry = HistoryEntry(
       scenarioContext: scenario.context,
       hateSpeechComment: scenario.hateSpeechComment,
@@ -32,13 +32,11 @@ class FeedbackScreen extends StatelessWidget {
       totalScore: totalScore,
       timestamp: DateTime.now(),
     );
-
     historyBox.add(newEntry);
-
-    // Update the user's XP and Streak
     await GamificationService().updateProgress(totalScore: totalScore);
-
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    if (context.mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   @override
@@ -46,27 +44,39 @@ class FeedbackScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Coach Feedback'),
-        automaticallyImplyLeading: false, // Removes the back button
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildComparisonCard("Your Reply", userReply, Colors.blueGrey),
+            // Use colors from the theme's colorScheme
+            _buildComparisonCard(
+              context,
+              "Your Reply",
+              userReply,
+              Theme.of(context).colorScheme.secondary,
+            ),
             const SizedBox(height: 16),
             _buildComparisonCard(
+              context,
               "Suggested Rewrite",
               feedback.suggestedRewrite,
-              Colors.deepPurple,
+              Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 24),
             Text(
               "Feedback Breakdown",
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ...feedback.scores.map((score) => _buildScoreTile(score)),
+            // Pass context to the score tile to access the theme
+            ...feedback.scores
+                .map((score) => _buildScoreTile(context, score))
+                .toList(),
           ],
         ),
       ),
@@ -74,62 +84,89 @@ class FeedbackScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: () => _saveAndFinish(context),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 56),
+          ),
           child: const Text('Finish & Save Session'),
         ),
       ),
     );
   }
 
-  Widget _buildComparisonCard(String title, String text, Color color) {
+  // Pass BuildContext to access the theme
+  Widget _buildComparisonCard(
+    BuildContext context,
+    String title,
+    String text,
+    Color color,
+  ) {
     return Card(
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: color, width: 2),
-        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: color, width: 1.5),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(
-                fontSize: 14,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
             const SizedBox(height: 8),
-            Text(text, style: const TextStyle(fontSize: 16)),
+            Text(
+              text,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(height: 1.4),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildScoreTile(Score score) {
+  // Pass BuildContext to access the theme
+  Widget _buildScoreTile(BuildContext context, Score score) {
+    // Use the theme's text color for subtitles
+    final subtitleColor = Theme.of(
+      context,
+    ).textTheme.bodySmall?.color?.withOpacity(0.7);
+
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  score.criterion,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    score.criterion,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 Text(
-                  "Score: ${score.score}/3",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  "${score.score}/3",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(score.rationale, style: TextStyle(color: Colors.white70)),
+            const SizedBox(height: 8),
+            Text(score.rationale, style: TextStyle(color: subtitleColor)),
           ],
         ),
       ),

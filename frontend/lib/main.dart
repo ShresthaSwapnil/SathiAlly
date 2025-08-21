@@ -1,13 +1,12 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:frontend/models/history_entry.dart';
-import 'package:frontend/features/dojo/dojo_screen.dart';
 import 'package:frontend/models/player_progress.dart';
 import 'package:frontend/features/shell/main_screen.dart';
 import 'package:frontend/services/profile_service.dart';
+import 'package:frontend/features/shell/loading_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,7 +97,7 @@ class SathiAllyApp extends StatelessWidget {
       themeMode: ThemeMode
           .system, // This is the magic part! It tells Flutter to follow the device's setting.
 
-      home: const MainScreen(),
+      home: const LoadingScreen(),
     );
   }
 }
