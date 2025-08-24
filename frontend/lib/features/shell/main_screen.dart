@@ -108,7 +108,7 @@ class _MainScreenState extends State<MainScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 icon: const Icon(Iconsax.game),
-                label: 'Game',
+                label: 'Deepfake',
               ),
               NavigationDestination(
                 selectedIcon: Icon(

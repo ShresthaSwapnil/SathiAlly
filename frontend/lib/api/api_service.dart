@@ -6,6 +6,9 @@ import 'package:frontend/models/score_response.dart';
 import 'package:frontend/models/lesson.dart';
 import 'package:frontend/models/quiz.dart';
 import 'package:frontend/models/game_item.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:frontend/models/image_analysis.dart';
 
 class ApiService {
   // Get the base URL from the environment variables
@@ -159,6 +162,34 @@ class ApiService {
       print("Server ping failed or timed out: $e");
       // We rethrow the error so the UI can know it failed.
       throw Exception('Server ping failed');
+    }
+  }
+
+  Future<ImageAnalysis> analyzeImage(XFile imageFile) async {
+    if (_baseUrl == null) throw Exception("API_BASE_URL not found");
+
+    var uri = Uri.parse('$_baseUrl/analyze_image');
+    var request = http.MultipartRequest('POST', uri);
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file', // This must match the key in the FastAPI endpoint
+        imageFile.path,
+        contentType: MediaType(
+          'image',
+          'jpeg',
+        ), // Assuming jpeg, but this is robust
+      ),
+    );
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      return ImageAnalysis.fromJson(jsonDecode(responseBody));
+    } else {
+      final responseBody = await response.stream.bytesToString();
+      print("Failed to analyze image. Server response: $responseBody");
+      throw Exception('Failed to analyze image');
     }
   }
 }
