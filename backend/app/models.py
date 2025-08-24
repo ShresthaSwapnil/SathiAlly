@@ -97,3 +97,8 @@ class UpdateScoreRequest(BaseModel):
     user_id: str
     username: str
     xp_gained: int
+
+class ImageAnalysisResponse(BaseModel):
+    is_likely_fake: bool
+    confidence_score: float # A score from 0.0 to 1.0
+    analysis_points: List[str] # A list of points the AI noticed

@@ -1,8 +1,10 @@
 import os
 import json
 import uuid
-from fastapi import APIRouter, HTTPException, Depends
-from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse, UpdateScoreRequest
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from PIL import Image
+import io
+from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse, UpdateScoreRequest, ImageAnalysisResponse
 import google.generativeai as genai
 from dotenv import load_dotenv
 from .database import SessionLocal, Leaderboard
@@ -22,7 +24,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize the Gemini model
 # We use gemini-1.5-flash as it's fast and cost-effective.
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash-lite')
 
 # APIRouter allows us to organize endpoints
 router = APIRouter()
@@ -134,6 +136,24 @@ You MUST respond ONLY with a valid JSON object that follows this exact structure
   "content": "<The text snippet you generated>",
   "is_real": <true_or_false>,
   "explanation": "<A concise explanation. e.g., 'This is fake because this event never happened.' or 'This is real; it refers to the moon landing in 1969.'>"
+}
+"""
+
+# --- NEW PROMPT for Image Analysis ---
+SYSTEM_PROMPT_IMAGE_ANALYSIS = """
+You are a world-class deepfake and image manipulation detection expert.
+Your task is to analyze an image provided by a user and determine if it is likely to be AI-generated or manipulated (a "deepfake").
+Analyze the image for common artifacts like unnatural skin texture, inconsistent lighting, strange backgrounds, asymmetrical features (especially eyes and ears), and weirdly formed hands or text.
+
+You MUST respond ONLY with a valid JSON object that follows this exact structure:
+{
+  "is_likely_fake": <true_or_false>,
+  "confidence_score": <A float between 0.0 and 1.0 representing your confidence in the verdict>,
+  "analysis_points": [
+    "<Your first observation, e.g., 'The lighting on the subject's face is inconsistent with the background.'>",
+    "<Your second observation, e.g., 'The texture of the skin appears overly smooth and lacks natural blemishes.'>",
+    "<A concluding observation.>"
+  ]
 }
 """
 
@@ -313,3 +333,25 @@ def get_leaderboard(db: Session = Depends(get_db)):
 def ping():
     """ A simple endpoint to verify the API is running and to wake it up. """
     return {"status": "alive"}
+
+@router.post("/analyze_image", response_model=ImageAnalysisResponse)
+async def analyze_image(file: UploadFile = File(...)):
+    """
+    Analyzes a user-uploaded image for signs of manipulation.
+    """
+    try:
+        # Read the image file content
+        contents = await file.read()
+        img = Image.open(io.BytesIO(contents))
+
+        # Send the prompt and the image to the Gemini model
+        response = model.generate_content([SYSTEM_PROMPT_IMAGE_ANALYSIS, img])
+
+        # Clean and parse the JSON response
+        cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        ai_output = json.loads(cleaned_response_text)
+        return ImageAnalysisResponse(**ai_output)
+
+    except Exception as e:
+        print(f"An unexpected error occurred during image analysis: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during image analysis.")
