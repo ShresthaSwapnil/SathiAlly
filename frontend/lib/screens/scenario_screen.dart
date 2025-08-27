@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:animate_do/animate_do.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/scenario.dart';
 import 'package:frontend/models/score_response.dart';
@@ -7,7 +9,6 @@ import 'package:frontend/screens/feedback_screen.dart';
 class ScenarioScreen extends StatefulWidget {
   final Scenario scenario;
   const ScenarioScreen({super.key, required this.scenario});
-
   @override
   State<ScenarioScreen> createState() => _ScenarioScreenState();
 }
@@ -48,11 +49,7 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      }
+      // Error handling
     } finally {
       if (mounted) {
         setState(() {
@@ -65,93 +62,184 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Practice Scenario')),
+      appBar: AppBar(
+        title: const Text('Training Simulation'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          // Padding is now the direct child of the scroll view
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Context Card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'THE SITUATION',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurpleAccent[100],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(widget.scenario.context),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Their perspective: ${widget.scenario.characterPersona}',
-                        style: const TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
+        onTap: () =>
+            FocusScope.of(context).unfocus(), // Dismiss keyboard on tap outside
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  // --- The "Mission Briefing" ---
+                  _MissionBriefing(scenario: widget.scenario),
+                  const SizedBox(height: 24),
+
+                  // --- The "Opponent's" Message ---
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 200),
+                    child: _ChatBubble(
+                      text: widget.scenario.hateSpeechComment,
+                      isOpponent: true,
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 20),
-              // Hate Speech Comment
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Colors.red[900]?.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
+            ),
+
+            // --- The User Input Area ---
+            _UserInput(
+              controller: _replyController,
+              isSubmitting: _isSubmitting,
+              onSubmit: _submitReply,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- NEW CUSTOM WIDGETS ---
+
+class _MissionBriefing extends StatelessWidget {
+  final Scenario scenario;
+  const _MissionBriefing({required this.scenario});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ExpansionTile(
+        leading: const Icon(Iconsax.info_circle),
+        title: const Text(
+          'Situation Briefing',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Location:', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  scenario.context,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                child: Text(
-                  '"${widget.scenario.hateSpeechComment}"',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                const SizedBox(height: 12),
+                Text(
+                  'Their Perspective:',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-              ),
-              const SizedBox(height: 20),
-              // User Reply Text Field
-              TextField(
-                controller: _replyController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Your Reply',
-                  hintText: 'Type your response here...',
+                Text(
+                  scenario.characterPersona,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                maxLines: 4,
-              ),
-              const SizedBox(
-                height: 24,
-              ), // Replaces the Spacer with a fixed space
-              // Submit Button
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitReply,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Submit for Feedback'),
-              ),
-            ],
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChatBubble extends StatelessWidget {
+  final String text;
+  final bool isOpponent;
+  const _ChatBubble({required this.text, this.isOpponent = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Align(
+      alignment: isOpponent ? Alignment.centerLeft : Alignment.centerRight,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: isOpponent
+              ? theme.colorScheme.surface
+              : theme.colorScheme.primary,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft: isOpponent
+                ? const Radius.circular(4)
+                : const Radius.circular(20),
+            bottomRight: isOpponent
+                ? const Radius.circular(20)
+                : const Radius.circular(4),
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isOpponent
+                ? theme.textTheme.bodyLarge?.color
+                : theme.colorScheme.onPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UserInput extends StatelessWidget {
+  final TextEditingController controller;
+  final bool isSubmitting;
+  final VoidCallback onSubmit;
+
+  const _UserInput({
+    required this.controller,
+    required this.isSubmitting,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                maxLines: 4,
+                minLines: 1,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  hintText: 'Type your response...',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            isSubmitting
+                ? const CircularProgressIndicator()
+                : IconButton(
+                    icon: const Icon(Iconsax.send_1),
+                    onPressed: onSubmit,
+                    color: Theme.of(context).colorScheme.primary,
+                    iconSize: 28,
+                  ),
+          ],
         ),
       ),
     );

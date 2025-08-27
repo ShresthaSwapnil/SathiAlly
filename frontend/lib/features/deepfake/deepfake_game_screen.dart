@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:animate_do/animate_do.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/image_analysis.dart';
@@ -52,88 +54,160 @@ class _DeepfakeGameScreenState extends State<DeepfakeGameScreen> {
     }
   }
 
+  void _reset() {
+    setState(() {
+      _imageFile = null;
+      _analysisResult = null;
+      _error = null;
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_imageFile == null)
-                _buildInitialView()
-              else
-                _buildAnalysisView(),
-              const SizedBox(height: 20),
-              if (!_isLoading)
-                ElevatedButton.icon(
-                  onPressed: _pickAndAnalyzeImage,
-                  icon: const Icon(Icons.upload_file),
-                  label: Text(
-                    _imageFile == null
-                        ? 'Select Image to Analyze'
-                        : 'Analyze Another Image',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 56),
-                  ),
-                ),
-              if (_isLoading) const Center(child: CircularProgressIndicator()),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInitialView() {
-    return Column(
-      children: [
-        const Icon(Icons.image_search, size: 80),
-        const SizedBox(height: 20),
-        Text(
-          'AI Image Analyzer',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          'Select an image from your gallery and our AI will check it for signs of manipulation.',
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnalysisView() {
-    return Expanded(
-      child: SingleChildScrollView(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.file(File(_imageFile!.path)),
-            ),
-            const SizedBox(height: 20),
-            if (_error != null)
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-                textAlign: TextAlign.center,
+            // --- MAIN CONTENT AREA ---
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  );
+                },
+                child: _buildContent(), // Logic is now in a helper method
               ),
-            if (_analysisResult != null) _buildResultCard(_analysisResult!),
+            ),
+
+            // --- ACTION BUTTON ---
+            // This button is now persistent and changes its function
+            const SizedBox(height: 20),
+            if (_imageFile == null)
+              ElevatedButton.icon(
+                onPressed: _pickAndAnalyzeImage,
+                icon: const Icon(Iconsax.document_upload),
+                label: const Text('Select Image to Analyze'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56),
+                ),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _reset,
+                icon: const Icon(Iconsax.refresh),
+                label: const Text('Analyze Another Image'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildResultCard(ImageAnalysis result) {
+  // Helper method to decide which view to show
+  Widget _buildContent() {
+    if (_imageFile == null) {
+      return _buildInitialView();
+    } else if (_isLoading) {
+      return _buildAnalyzingView();
+    } else {
+      return _buildResultsView();
+    }
+  }
+
+  Widget _buildInitialView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        FadeInDown(child: const Icon(Iconsax.scan_barcode, size: 80)),
+        const SizedBox(height: 20),
+        FadeInUp(
+          child: Text(
+            'AI Image Analyzer',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 10),
+        FadeInUp(
+          delay: const Duration(milliseconds: 200),
+          child: const Text(
+            'Our AI will check for signs of manipulation like unnatural textures, inconsistent lighting, and other artifacts.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyzingView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CircularProgressIndicator(),
+        const SizedBox(height: 24),
+        Text('Analyzing...', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Text(
+          'Please wait while our AI scans the image.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResultsView() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Text(
+            'Analysis Complete',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.file(File(_imageFile!.path)),
+          ),
+          const SizedBox(height: 20),
+          if (_error != null)
+            Text(
+              _error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              textAlign: TextAlign.center,
+            ),
+          if (_analysisResult != null)
+            FadeIn(
+              duration: const Duration(milliseconds: 500),
+              child: _ResultCard(result: _analysisResult!),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultCard extends StatelessWidget {
+  final ImageAnalysis result;
+  const _ResultCard({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
     final bool isFake = result.isLikelyFake;
     final Color color = isFake ? Colors.orange.shade800 : Colors.green.shade600;
+    final IconData icon = isFake ? Iconsax.warning_2 : Iconsax.verify;
+
     return Card(
       shape: RoundedRectangleBorder(
         side: BorderSide(color: color, width: 2),
@@ -143,28 +217,37 @@ class _DeepfakeGameScreenState extends State<DeepfakeGameScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              isFake ? 'Likely AI-Generated / Manipulated' : 'Likely Authentic',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 28),
+                const SizedBox(width: 12),
+                Text(
+                  isFake ? 'Likely Manipulated' : 'Likely Authentic',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               'Confidence: ${(result.confidenceScore * 100).toStringAsFixed(0)}%',
             ),
             const Divider(height: 24),
             Text(
               'Key Observations:',
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ...result.analysisPoints.map(
               (point) => ListTile(
                 leading: Icon(
-                  Icons.check_circle_outline,
+                  Iconsax.arrow_right_3,
+                  size: 16,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(point),

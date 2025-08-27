@@ -17,7 +17,7 @@ class _LearnScreenState extends State<LearnScreen> {
   Lesson? _currentLesson;
   bool _isLoading = false;
   String? _error;
-  String? _currentTopic; // Variable to store the currently selected topic
+  String? _currentTopic;
 
   final List<String> _topics = [
     "What is Misinformation?",
@@ -53,105 +53,66 @@ class _LearnScreenState extends State<LearnScreen> {
     }
   }
 
-  // This method is no longer used since the button now launches the quiz,
-  // but we can keep it for future reference or remove it. For now, it's commented out.
-  /*
-  void _markAsLearned() async {
-    await GamificationService().updateProgress(totalScore: 10);
-    setState(() {
-      _currentLesson = null;
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('+10 XP! Your knowledge is growing.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
-  }
-  */
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(_error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => setState(() => _error = null),
-                child: const Text('Try Again'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return Center(child: Text(_error!));
     }
-    if (_currentLesson != null && _currentTopic != null) {
-      // Pass both the lesson and the topic to the build method
+    if (_currentLesson != null) {
       return _buildLessonView(_currentLesson!, _currentTopic!);
     }
     return _buildTopicSelectionView();
   }
 
   Widget _buildTopicSelectionView() {
-    final topicIcons = [
-      Iconsax.message_question,
-      Iconsax.eye,
-      Iconsax.cpu_setting,
-      Iconsax.shield_tick,
-      Iconsax.bubble,
-      Iconsax.document_text,
+    final topicData = [
+      {'icon': Iconsax.message_question, 'color': Colors.blue},
+      {'icon': Iconsax.eye, 'color': Colors.red},
+      {'icon': Iconsax.cpu_setting, 'color': Colors.purple},
+      {'icon': Iconsax.shield_tick, 'color': Colors.green},
+      {'icon': Iconsax.bubble, 'color': Colors.orange},
+      {'icon': Iconsax.document_text, 'color': Colors.teal},
     ];
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      children: [
-        Text(
-          "What do you want to learn today?",
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        ..._topics.asMap().entries.map((entry) {
-          int idx = entry.key;
-          String topic = entry.value;
-          return FadeInUp(
-            delay: Duration(milliseconds: 100 * idx),
-            child: Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                leading: Icon(
-                  topicIcons[idx % topicIcons.length], // Cycle through icons
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(
-                  topic,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                trailing: const Icon(Iconsax.arrow_right_3, size: 20),
-                onTap: () => _fetchLesson(topic),
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "What do you want to learn today?",
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _topics.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.0, // Makes the cards square
             ),
-          );
-        }).toList(),
-      ],
+            itemBuilder: (context, index) {
+              return FadeInUp(
+                delay: Duration(milliseconds: 100 * index),
+                child: _TopicCard(
+                  title: _topics[index],
+                  icon: topicData[index]['icon'] as IconData,
+                  color: topicData[index]['color'] as Color,
+                  onTap: () => _fetchLesson(_topics[index]),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -255,6 +216,56 @@ class _LearnScreenState extends State<LearnScreen> {
             label: const Text("Take the Quiz!"),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TopicCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _TopicCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      elevation: 4,
+      shadowColor: color.withOpacity(0.3),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          // We are changing the Column's alignment properties
+          child: Column(
+            // --- CHANGE 1: Center vertically ---
+            mainAxisAlignment: MainAxisAlignment.center,
+            // --- CHANGE 2: Center horizontally ---
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: color), // Made the icon a bit bigger
+              const SizedBox(height: 12), // Added a bit of space
+              Text(
+                title,
+                textAlign: TextAlign
+                    .center, // --- CHANGE 3: Center the text itself ---
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

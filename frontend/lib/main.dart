@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:frontend/models/history_entry.dart';
 import 'package:frontend/models/player_progress.dart';
-import 'package:frontend/features/shell/main_screen.dart';
 import 'package:frontend/services/profile_service.dart';
 import 'package:frontend/features/shell/loading_screen.dart';
 

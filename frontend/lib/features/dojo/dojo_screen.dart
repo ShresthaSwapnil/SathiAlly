@@ -14,16 +14,30 @@ class DojoScreen extends StatefulWidget {
   State<DojoScreen> createState() => _DojoScreenState();
 }
 
-class _DojoScreenState extends State<DojoScreen> {
+class _DojoScreenState extends State<DojoScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
   final GamificationService _gamificationService = GamificationService();
   late PlayerProgress _playerProgress;
 
+  late AnimationController _animationController;
+
   @override
   void initState() {
     super.initState();
     _loadProgress();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _loadProgress() {
@@ -119,101 +133,42 @@ class _DojoScreenState extends State<DojoScreen> {
           : Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  // New, improved stats header
-                  FadeIn(
-                    duration: const Duration(milliseconds: 500),
-                    child: _StatsHeader(playerProgress: _playerProgress),
-                  ),
-                  const Spacer(),
-                  // Main content with better hierarchy
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 500),
-                    child: Text(
-                      'Ready for a Challenge?',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 200),
-                    child: const Text(
-                      'Practice makes perfect. Jump into a scenario to sharpen your skills.',
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 400),
-                    child: ElevatedButton.icon(
-                      onPressed: () => _startNewSession(),
-                      icon: const Icon(Iconsax.play),
-                      label: const Text('Start Random Session'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 56),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 500),
-                    child: OutlinedButton(
-                      onPressed: _showTopicSelection,
-                      child: const Text('Choose a Specific Topic'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 56),
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                  FadeIn(child: _StatsHeader(playerProgress: _playerProgress)),
+
+                  // The new Hero Action Card takes center stage
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FadeInUp(
+                          duration: const Duration(milliseconds: 500),
+                          child: _HeroActionCard(
+                            animationController: _animationController,
+                            onTap: () => _startNewSession(),
+                          ),
                         ),
-                        foregroundColor: Theme.of(context).colorScheme.primary,
+                      ],
+                    ),
+                  ),
+
+                  // The secondary action is now less prominent and at the bottom
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 200),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: TextButton(
+                        onPressed: _showTopicSelection,
+                        child: const Text('Or choose a specific topic...'),
                       ),
                     ),
                   ),
-                  const Spacer(),
                 ],
               ),
             ),
     );
   }
-
-  // Widget _buildStatsBar() {
-  //   return FadeIn(
-  //     duration: const Duration(milliseconds: 500),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //       children: [
-  //         _buildStatItem(
-  //           Icons.star,
-  //           '${_playerProgress.totalXp} XP',
-  //           Colors.amber,
-  //         ),
-  //         _buildStatItem(
-  //           Icons.local_fire_department,
-  //           '${_playerProgress.streakCount} Day Streak',
-  //           Colors.orange,
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildStatItem(IconData icon, String label, Color color) {
-  //   return Row(
-  //     children: [
-  //       Icon(icon, color: color, size: 28),
-  //       const SizedBox(width: 8),
-  //       Text(
-  //         label,
-  //         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-  //       ),
-  //     ],
-  //   );
-  // }
 }
 
 class _StatsHeader extends StatelessWidget {
@@ -238,7 +193,7 @@ class _StatsHeader extends StatelessWidget {
             const SizedBox(height: 30, child: VerticalDivider()),
             _buildStatItem(
               context,
-              Icons.local_fire_department,
+              Icons.local_fire_department_outlined,
               '${playerProgress.streakCount} Day Streak',
               Colors.orange,
             ),
@@ -263,6 +218,71 @@ class _StatsHeader extends StatelessWidget {
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroActionCard extends StatelessWidget {
+  final AnimationController animationController;
+  final VoidCallback onTap;
+  const _HeroActionCard({
+    required this.animationController,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Enter the Dojo',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Tap below to start a new training simulation.',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        FadeTransition(
+          opacity: Tween<double>(
+            begin: 0.7,
+            end: 1.0,
+          ).animate(animationController),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.98, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animationController,
+                curve: Curves.easeInOut,
+              ),
+            ),
+            child: Card(
+              elevation: 8,
+              shadowColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.4),
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: onTap,
+                customBorder: const CircleBorder(),
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: const BoxDecoration(shape: BoxShape.circle),
+                  child: Icon(
+                    Iconsax.security_safe,
+                    size: 70,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
