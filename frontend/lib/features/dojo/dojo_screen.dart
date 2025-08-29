@@ -6,6 +6,7 @@ import 'package:frontend/models/player_progress.dart';
 import 'package:frontend/models/scenario.dart';
 import 'package:frontend/screens/scenario_screen.dart';
 import 'package:frontend/services/gamification_service.dart';
+import 'package:frontend/services/dojo_progress_service.dart';
 
 class DojoScreen extends StatefulWidget {
   const DojoScreen({super.key});
@@ -22,6 +23,9 @@ class _DojoScreenState extends State<DojoScreen>
   late PlayerProgress _playerProgress;
 
   late AnimationController _animationController;
+
+  final DojoProgressService _dojoProgressService = DojoProgressService();
+  late int _sessionsToday;
 
   @override
   void initState() {
@@ -43,6 +47,7 @@ class _DojoScreenState extends State<DojoScreen>
   void _loadProgress() {
     setState(() {
       _playerProgress = _gamificationService.getProgress();
+      _sessionsToday = _dojoProgressService.getSessionsCompletedToday();
     });
   }
 
@@ -136,6 +141,12 @@ class _DojoScreenState extends State<DojoScreen>
                 children: [
                   const SizedBox(height: 16),
                   FadeIn(child: _StatsHeader(playerProgress: _playerProgress)),
+                  const SizedBox(height: 24),
+                  // --- NEW: Daily Goal Card ---
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 100),
+                    child: _DailyGoalCard(sessionsToday: _sessionsToday),
+                  ),
 
                   // The new Hero Action Card takes center stage
                   Expanded(
@@ -285,6 +296,56 @@ class _HeroActionCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DailyGoalCard extends StatelessWidget {
+  final int sessionsToday;
+  final int goal = 1; // Our simple daily goal is 1 session
+  const _DailyGoalCard({required this.sessionsToday});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isCompleted = sessionsToday >= goal;
+    return Card(
+      color: isCompleted ? Colors.green.withOpacity(0.2) : null,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(
+              isCompleted ? Iconsax.tick_circle : Iconsax.clock,
+              color: isCompleted
+                  ? Colors.green
+                  : Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Daily Goal',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    isCompleted
+                        ? 'Great work today!'
+                        : 'Complete a Dojo session to maintain your streak.',
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '$sessionsToday / $goal',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

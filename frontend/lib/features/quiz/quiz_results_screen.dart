@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:frontend/services/gamification_service.dart';
+import 'package:frontend/services/learn_progress_service.dart';
 
 class QuizResultsScreen extends StatelessWidget {
+  final String topic;
   final int score;
   final int totalQuestions;
   const QuizResultsScreen({
     super.key,
+    required this.topic,
     required this.score,
     required this.totalQuestions,
   });
@@ -14,6 +17,9 @@ class QuizResultsScreen extends StatelessWidget {
   void _finishAndClaimXP(BuildContext context) async {
     int xpGained = score * 5;
     await GamificationService().updateProgress(totalScore: xpGained);
+    if ((score / totalQuestions) >= 0.5) {
+      await LearnProgressService().completeLesson(topic);
+    }
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

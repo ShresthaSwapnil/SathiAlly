@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from PIL import Image
 import io
-from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse, UpdateScoreRequest, ImageAnalysisResponse
+from .models import ScoreRequest, ScoreResponse, ScenarioRequest, ScenarioResponse, TelemetryData, LearnRequest, LearnResponse, QuizRequest, QuizResponse, GameItemResponse, UpdateScoreRequest, ImageAnalysisResponse, MiniLessonRequest,MiniLessonResponse
 import google.generativeai as genai
 from dotenv import load_dotenv
 from .database import SessionLocal, Leaderboard
@@ -34,7 +34,7 @@ router = APIRouter()
 # This is the core instruction for our AI coach.
 # We tell it its role, the scoring rubric, and the exact JSON format to reply in.
 SYSTEM_PROMPT_SCORING = """
-You are an AI coach for Sathi Ally, a platform that trains youth to de-escalate online hate speech. 
+You are an AI coach for Netra, a platform that trains youth to de-escalate online hate speech. 
 Your task is to score a user's reply to a hostile online comment based on a clear rubric. 
 You must provide a score (0-3), a concise rationale for each criterion, and a constructive, improved rewrite of the user's reply.
 
@@ -56,7 +56,7 @@ Analyze the following user reply and provide your assessment in the specified JS
 
 # --- PROMPT ENGINEERING for Scenario Generation ---
 SYSTEM_PROMPT_SCENARIO = """
-You are a creative content designer for Sathi Ally, a training app against online hate speech.
+You are a creative content designer for Netra, a training app against online hate speech.
 Your task is to generate a single, realistic, and challenging online hate speech scenario.
 The scenario must be self-contained and provide enough context for a user to respond to.
 Avoid overly graphic content, but make the comment feel authentic and harmful.
@@ -154,6 +154,19 @@ You MUST respond ONLY with a valid JSON object that follows this exact structure
     "<Your second observation, e.g., 'The texture of the skin appears overly smooth and lacks natural blemishes.'>",
     "<A concluding observation.>"
   ]
+}
+"""
+
+# --- NEW PROMPT for Mini-Lessons ---
+SYSTEM_PROMPT_MINI_LESSON = """
+You are an expert educator for the "Netra" app. Your task is to provide a very short, clear, and simple explanation of a specific visual artifact or concept related to image manipulation.
+The user is asking about this term from within an image analysis tool.
+
+You MUST respond ONLY with a valid JSON object that follows this exact structure:
+{
+  "term": "<The term you are defining>",
+  "definition": "<A one or two-sentence, easy-to-understand definition of the term.>",
+  "example": "<A one-sentence example of what to look for. e.g., 'Look for shadows on a face that don't match the direction of the sun in the background.'>"
 }
 """
 
@@ -355,3 +368,15 @@ async def analyze_image(file: UploadFile = File(...)):
     except Exception as e:
         print(f"An unexpected error occurred during image analysis: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during image analysis.")
+    
+# --- NEW: MINI-LESSON ENDPOINT ---
+@router.post("/get_mini_lesson", response_model=MiniLessonResponse)
+async def get_mini_lesson(request: MiniLessonRequest):
+    try:
+        full_prompt = f"{SYSTEM_PROMPT_MINI_LESSON}\n\nPlease provide a mini-lesson for the term: '{request.term}'."
+        response = await model.generate_content_async(full_prompt)
+        cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        ai_output = json.loads(cleaned_response_text)
+        return MiniLessonResponse(**ai_output)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error during mini-lesson generation.")

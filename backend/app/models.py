@@ -102,3 +102,11 @@ class ImageAnalysisResponse(BaseModel):
     is_likely_fake: bool
     confidence_score: float # A score from 0.0 to 1.0
     analysis_points: List[str] # A list of points the AI noticed
+
+class MiniLessonRequest(BaseModel):
+    term: str
+
+class MiniLessonResponse(BaseModel):
+    term: str
+    definition: str
+    example: str

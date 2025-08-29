@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/lesson.dart';
 import 'package:frontend/features/quiz/quiz_screen.dart';
+import 'package:frontend/services/learn_progress_service.dart';
 
 class LearnScreen extends StatefulWidget {
   const LearnScreen({super.key});
@@ -14,6 +15,7 @@ class LearnScreen extends StatefulWidget {
 
 class _LearnScreenState extends State<LearnScreen> {
   final ApiService _apiService = ApiService();
+  final LearnProgressService _learnProgressService = LearnProgressService();
   Lesson? _currentLesson;
   bool _isLoading = false;
   String? _error;
@@ -100,12 +102,18 @@ class _LearnScreenState extends State<LearnScreen> {
               childAspectRatio: 1.0, // Makes the cards square
             ),
             itemBuilder: (context, index) {
+              final topic = _topics[index];
+              final bool isCompleted = _learnProgressService.isLessonCompleted(
+                topic,
+              );
+
               return FadeInUp(
                 delay: Duration(milliseconds: 100 * index),
                 child: _TopicCard(
                   title: _topics[index],
                   icon: topicData[index]['icon'] as IconData,
                   color: topicData[index]['color'] as Color,
+                  isCompleted: isCompleted,
                   onTap: () => _fetchLesson(_topics[index]),
                 ),
               );
@@ -188,7 +196,8 @@ class _LearnScreenState extends State<LearnScreen> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => QuizScreen(questions: questions),
+                      builder: (context) =>
+                          QuizScreen(topic: topic, questions: questions),
                     ),
                   );
                   // After quiz is done, return to topic list
@@ -225,12 +234,14 @@ class _TopicCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color color;
+  final bool isCompleted;
   final VoidCallback onTap;
 
   const _TopicCard({
     required this.title,
     required this.icon,
     required this.color,
+    required this.isCompleted,
     required this.onTap,
   });
 
@@ -238,32 +249,53 @@ class _TopicCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      elevation: 4,
-      shadowColor: color.withOpacity(0.3),
+      elevation: isCompleted ? 1 : 4,
+      shadowColor: isCompleted ? Colors.transparent : color.withOpacity(0.3),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          // We are changing the Column's alignment properties
-          child: Column(
-            // --- CHANGE 1: Center vertically ---
-            mainAxisAlignment: MainAxisAlignment.center,
-            // --- CHANGE 2: Center horizontally ---
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: color), // Made the icon a bit bigger
-              const SizedBox(height: 12), // Added a bit of space
-              Text(
-                title,
-                textAlign: TextAlign
-                    .center, // --- CHANGE 3: Center the text itself ---
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
+        child: Opacity(
+          opacity: isCompleted ? 0.7 : 1.0,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            // We are changing the Column's alignment properties
+            child: Stack(
+              children: [
+                Column(
+                  // --- CHANGE 1: Center vertically ---
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  // --- CHANGE 2: Center horizontally ---
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 48,
+                      color: color,
+                    ), // Made the icon a bit bigger
+                    const SizedBox(height: 12), // Added a bit of space
+                    Text(
+                      title,
+                      textAlign: TextAlign
+                          .center, // --- CHANGE 3: Center the text itself ---
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                if (isCompleted)
+                  const Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Icon(
+                      Iconsax.tick_circle,
+                      color: Colors.green,
+                      size: 28,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

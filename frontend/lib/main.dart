@@ -21,6 +21,9 @@ Future<void> main() async {
   await Hive.openBox<PlayerProgress>('player_progress');
   await Hive.openBox('profile');
 
+  await Hive.openBox<String>('completed_lessons'); 
+  await Hive.openBox('dojo_progress');
+
   await ProfileService().initProfile();
 
   runApp(const SathiAllyApp());

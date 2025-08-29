@@ -5,8 +5,9 @@ import 'package:frontend/models/quiz.dart';
 import 'package:frontend/features/quiz/quiz_results_screen.dart';
 
 class QuizScreen extends StatefulWidget {
+  final String topic;
   final List<QuizQuestion> questions;
-  const QuizScreen({super.key, required this.questions});
+  const QuizScreen({super.key, required this.topic, required this.questions});
   @override
   State<QuizScreen> createState() => _QuizScreenState();
 }
@@ -41,6 +42,7 @@ class _QuizScreenState extends State<QuizScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => QuizResultsScreen(
+            topic: widget.topic,
             score: _score,
             totalQuestions: widget.questions.length,
           ),

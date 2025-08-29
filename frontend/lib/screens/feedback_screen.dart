@@ -5,6 +5,7 @@ import 'package:frontend/models/history_entry.dart';
 import 'package:frontend/models/scenario.dart';
 import 'package:frontend/models/score_response.dart';
 import 'package:frontend/services/gamification_service.dart';
+import 'package:frontend/features/dojo/session_complete_screen.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final Scenario scenario;
@@ -52,10 +53,18 @@ class _FeedbackScreenState extends State<FeedbackScreen>
       totalScore: totalScore,
       timestamp: DateTime.now(),
     );
+
     historyBox.add(newEntry);
+    int xpGained = 5 + totalScore;
     await GamificationService().updateProgress(totalScore: totalScore);
+
     if (context.mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SessionCompleteScreen(xpGained: xpGained),
+        ),
+      );
     }
   }
 
