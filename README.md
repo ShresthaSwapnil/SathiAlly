@@ -44,7 +44,7 @@ Netra is built on a modern, robust, and highly scalable technology stack:
 
 - **Frontend:** **Flutter** - For a beautiful, fast, and cross-platform native mobile experience.
 - **Backend:** **FastAPI (Python)** - For a high-performance, asynchronous, and scalable API.
-- **AI Model:** **Google Gemini Pro & Pro Vision** - The core intelligence for generating lessons, quizzes, scenarios, and performing multimodal image analysis.
+- **AI Model:** **Google Gemini Flash** - The core intelligence for generating lessons, quizzes, scenarios, and performing multimodal image analysis.
 - **Database:** **PostgreSQL (Neon)** - For persistent, serverless storage of leaderboard data.
 - **Deployment:** **Render** - For continuous, hassle-free deployment of the backend service.
 
