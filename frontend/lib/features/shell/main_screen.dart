@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:frontend/features/dojo/dojo_screen.dart';
 import 'package:frontend/features/learn/learn_screen.dart';
@@ -6,6 +7,7 @@ import 'package:frontend/features/deepfake/deepfake_game_screen.dart';
 import 'package:frontend/features/leaderboard/leaderboard_screen.dart';
 import 'package:frontend/features/profile/profile_screen.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -37,20 +39,24 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_showcaseContext != null) {
-        // Always start showcase in the same order as bottom nav + profile
-        ShowCaseWidget.of(_showcaseContext!).startShowCase([
-          _learnKey,
-          _dojoKey,
-          _gameKey,
-          _ranksKey,
-          _profileKey,
-        ]);
-      }
+      _checkIfShowcaseNeeded();
     });
   }
 
+  Future<void> _checkIfShowcaseNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool showcaseShown = prefs.getBool('showcaseShown') ?? false;
+
+    if (!showcaseShown && _showcaseContext != null) {
+      await prefs.setBool('showcaseShown', true);
+      ShowCaseWidget.of(
+        _showcaseContext!,
+      ).startShowCase([_learnKey, _dojoKey, _gameKey, _ranksKey, _profileKey]);
+    }
+  }
+
   void _onItemTapped(int index) {
+    HapticFeedback.lightImpact();
     setState(() {
       _selectedIndex = index;
     });
@@ -67,12 +73,15 @@ class _MainScreenState extends State<MainScreen> {
             title: const Text('Netra'),
             actions: [
               IconButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                ),
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
                 icon: Showcase(
                   key: _profileKey,
                   title: 'Your Profile',

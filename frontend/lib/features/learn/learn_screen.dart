@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/lesson.dart';
@@ -31,6 +32,7 @@ class _LearnScreenState extends State<LearnScreen> {
   ];
 
   void _fetchLesson(String topic) async {
+    HapticFeedback.mediumImpact();
     setState(() {
       _isLoading = true;
       _currentLesson = null;
@@ -125,6 +127,7 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   Widget _buildLessonView(Lesson lesson, String topic) {
+    HapticFeedback.lightImpact();
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -188,6 +191,7 @@ class _LearnScreenState extends State<LearnScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.quiz_outlined),
             onPressed: () async {
+              HapticFeedback.lightImpact();
               setState(() => _isLoading = true);
               try {
                 final questions = await _apiService.generateQuiz(topic: topic);

@@ -3,6 +3,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:frontend/models/quiz.dart';
 import 'package:frontend/features/quiz/quiz_results_screen.dart';
+import 'package:flutter/services.dart';
 
 class QuizScreen extends StatefulWidget {
   final String topic;
@@ -19,6 +20,7 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _isAnswered = false;
 
   void _answerQuestion(int selectedIndex) {
+    HapticFeedback.lightImpact();
     if (_isAnswered) return;
     setState(() {
       _selectedAnswerIndex = selectedIndex;
@@ -31,6 +33,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _nextQuestion() {
+    HapticFeedback.lightImpact();
     if (_currentQuestionIndex < widget.questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;

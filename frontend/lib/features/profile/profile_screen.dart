@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:frontend/models/player_progress.dart';
 import 'package:frontend/screens/history_screen.dart';
@@ -34,6 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _changeUsername() async {
+    HapticFeedback.mediumImpact();
     final newName = await _profileService.regenerateUsername();
     setState(() {
       _username = newName;
@@ -54,6 +56,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            Navigator.of(context).pop();
+          },
+        ),
         title: const Text('My Dashboard'),
         backgroundColor: Colors.transparent,
         elevation: 0,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend/models/history_entry.dart';
@@ -8,8 +9,18 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    HapticFeedback.mediumImpact();
     return Scaffold(
-      appBar: AppBar(title: const Text('Session History')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).pop();
+          },
+        ),
+        title: const Text('Session History'),
+      ),
       body: ValueListenableBuilder(
         valueListenable: Hive.box<HistoryEntry>('history').listenable(),
         builder: (context, Box<HistoryEntry> box, _) {

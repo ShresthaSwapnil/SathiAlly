@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend/api/api_service.dart';
@@ -22,6 +23,7 @@ class _DeepfakeGameScreenState extends State<DeepfakeGameScreen> {
   String? _error;
 
   Future<void> _pickAndAnalyzeImage() async {
+    HapticFeedback.mediumImpact();
     final XFile? selectedImage = await _picker.pickImage(
       source: ImageSource.gallery,
     );
@@ -55,6 +57,7 @@ class _DeepfakeGameScreenState extends State<DeepfakeGameScreen> {
   }
 
   void _reset() {
+    HapticFeedback.mediumImpact();
     setState(() {
       _imageFile = null;
       _analysisResult = null;

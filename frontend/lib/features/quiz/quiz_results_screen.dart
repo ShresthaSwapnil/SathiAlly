@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:frontend/services/gamification_service.dart';
 import 'package:frontend/services/learn_progress_service.dart';
+import 'package:flutter/services.dart';
 
 class QuizResultsScreen extends StatelessWidget {
   final String topic;
@@ -83,7 +84,10 @@ class QuizResultsScreen extends StatelessWidget {
               FadeInUp(
                 delay: const Duration(milliseconds: 700),
                 child: ElevatedButton(
-                  onPressed: () => _finishAndClaimXP(context),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _finishAndClaimXP(context);
+                  },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 56),
                   ),

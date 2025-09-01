@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:frontend/api/api_service.dart';
 import 'package:frontend/models/scenario.dart';
@@ -19,6 +20,7 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
   bool _isSubmitting = false;
 
   void _submitReply() async {
+    HapticFeedback.mediumImpact();
     if (_replyController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -69,7 +71,7 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
       ),
       body: GestureDetector(
         onTap: () =>
-            FocusScope.of(context).unfocus(), // Dismiss keyboard on tap outside
+            FocusScope.of(context).unfocus(), 
         child: Column(
           children: [
             Expanded(

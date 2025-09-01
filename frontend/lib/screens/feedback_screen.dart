@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:frontend/models/history_entry.dart';
 import 'package:frontend/models/scenario.dart';
@@ -40,6 +41,7 @@ class _FeedbackScreenState extends State<FeedbackScreen>
   }
 
   void _saveAndFinish(BuildContext context) async {
+    HapticFeedback.mediumImpact();
     final historyBox = Hive.box<HistoryEntry>('history');
     final totalScore = widget.feedback.scores.fold<int>(
       0,

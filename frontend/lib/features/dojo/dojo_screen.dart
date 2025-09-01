@@ -7,6 +7,7 @@ import 'package:frontend/models/scenario.dart';
 import 'package:frontend/screens/scenario_screen.dart';
 import 'package:frontend/services/gamification_service.dart';
 import 'package:frontend/services/dojo_progress_service.dart';
+import 'package:flutter/services.dart';
 
 class DojoScreen extends StatefulWidget {
   const DojoScreen({super.key});
@@ -53,6 +54,7 @@ class _DojoScreenState extends State<DojoScreen>
 
   // CORRECTED METHOD DEFINITION: topic is an optional named parameter.
   void _startNewSession({String? topic}) async {
+    HapticFeedback.mediumImpact();
     setState(() {
       _isLoading = true;
     });
@@ -89,6 +91,7 @@ class _DojoScreenState extends State<DojoScreen>
   }
 
   void _showTopicSelection() {
+    HapticFeedback.lightImpact();
     showModalBottomSheet(
       context: context,
       builder: (context) {
